@@ -14,22 +14,22 @@ import com.wuda.util.UrlUtil;
 public class Crawl {
 
 	public static void main(String[] args) {
-		UrlBean host = UrlUtil.getUrlBean("http://www.lizhuping.com/");
-		UrlScheduler.addNewHost(host);
+		UrlBean host = UrlUtil.getUrlBean("http://www.lizhuping.com/"); 
+		UrlScheduler.addNewHost(host);//添加一个主机
 
-		Config config = new Config();
-		config.setAnalyzer(new Analyzer());
-		config.setStorage(new Storage());
-		config.setThreadCount(4);
-		config.setTimeOut(3000);
+		Config config = new Config(); //抓取的各种配置
+		config.setAnalyzer(new Analyzer()); //分析器
+		config.setStorage(new Storage()); //存储器
+		config.setThreadCount(4); //每个主机下的线程数
+		config.setTimeOut(3000); //超时时间
 		config.setUrlScheduler(new UrlScheduler());
-		Set<String> url_uncontains = new HashSet<String>();
+		Set<String> url_uncontains = new HashSet<String>(); //URL中不能包含的字符
 		url_uncontains.add("javascript");
 		url_uncontains.add("\\?");
 		config.setUrlUnContains(url_uncontains);
 
 		HostTarget target = new HostTarget(config);
-		target.start();
+		target.start(); //开始抓取
 
 	}
 

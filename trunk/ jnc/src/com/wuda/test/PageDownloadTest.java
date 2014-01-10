@@ -1,20 +1,11 @@
 package com.wuda.test;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.text.NumberFormat;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.http.ParseException;
 
-import com.wuda.util.HtmlParser;
 import com.wuda.util.PageDownload;
-import com.wuda.util.UrlBean;
-import com.wuda.util.UrlUtil;
 
 public class PageDownloadTest {
 
