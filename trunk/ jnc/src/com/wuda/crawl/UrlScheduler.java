@@ -43,7 +43,7 @@ public class UrlScheduler {
 	 */
 	private LinkedList<UrlBean> READY_FOR_CRAWL_URLS = new LinkedList<UrlBean>();
 
-	private Object lock = new Object();
+	private static Object lock = new Object();
 
 	/**
 	 * <p>
@@ -80,13 +80,7 @@ public class UrlScheduler {
 					READY_FOR_CRAWL_URLS.addLast(url);
 				}
 			} else { // 其他host下的url
-				url.onlyLeftSchemeAndHost();
-				synchronized (lock) {
-					if (GLOBAL_CRALED_HOSTS.contains(url) == false
-							&& GLOBAL_NEW_HOSTS.contains(url) == false) {
-						GLOBAL_NEW_HOSTS.addLast(url);
-					}
-				}
+				addNewHost(url);
 			}
 		}
 	}
@@ -119,8 +113,11 @@ public class UrlScheduler {
 	 */
 	public static void addNewHost(UrlBean host) {
 		host.onlyLeftSchemeAndHost();
-		synchronized (GLOBAL_NEW_HOSTS) {
-			GLOBAL_NEW_HOSTS.addLast(host);
+		synchronized (lock) {
+			if (GLOBAL_CRALED_HOSTS.contains(host) == false
+					&& GLOBAL_NEW_HOSTS.contains(host) == false) {
+				GLOBAL_NEW_HOSTS.addLast(host);
+			}
 		}
 	}
 
