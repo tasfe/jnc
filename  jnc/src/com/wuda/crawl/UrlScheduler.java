@@ -36,12 +36,12 @@ public class UrlScheduler {
 	/**
 	 * 当前这个host下已经抓取过的url
 	 */
-	private Set<UrlBean> CRAWLED_URLS = new HashSet<UrlBean>();
+	protected Set<UrlBean> CRAWLED_URLS = new HashSet<UrlBean>();
 
 	/**
 	 * 当前这个host下待抓取的url
 	 */
-	private LinkedList<UrlBean> READY_FOR_CRAWL_URLS = new LinkedList<UrlBean>();
+	protected LinkedList<UrlBean> READY_FOR_CRAWL_URLS = new LinkedList<UrlBean>();
 
 	private static Object lock = new Object();
 
@@ -137,7 +137,7 @@ public class UrlScheduler {
 	 *            对比的{@link UrlBean}
 	 * @return true-如果是在当前正在调度的host中
 	 */
-	private boolean isInHost(UrlBean url) {
+	protected boolean isInHost(UrlBean url) {
 		if (url.isRelative()) { // 相对路径
 			return true;
 		} else {

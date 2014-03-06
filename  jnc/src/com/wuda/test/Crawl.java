@@ -14,7 +14,7 @@ import com.wuda.util.UrlUtil;
 public class Crawl {
 
 	public static void main(String[] args) {
-		UrlBean host = UrlUtil.getUrlBean("http://www.lizhuping.com/"); 
+		UrlBean host = UrlUtil.getUrlBean("http://www.sina.com.cn/"); 
 		UrlScheduler.addNewHost(host);//添加一个主机
 
 		Config config = new Config(); //抓取的各种配置
