@@ -133,8 +133,8 @@ public class HostTarget {
 			 * 为抓取一个新的host而重置各个指标
 			 */
 			httpHost = new HttpHost(host.getHost());
-			cralw_total.compareAndSet(0, 0);
-			finished_url_count.compareAndSet(0, 0);
+			cralw_total.set(0);
+			finished_url_count.set(0);
 		}
 		return host;
 	}
