@@ -1,7 +1,6 @@
 package com.wuda.crawl;
 
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,7 +14,6 @@ import org.apache.http.params.HttpConnectionParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wuda.util.HtmlParser;
 import com.wuda.util.PageDownload;
 import com.wuda.util.UrlBean;
 
@@ -31,7 +29,7 @@ public class HostTarget {
 
 	private Logger logger = LoggerFactory.getLogger(HostTarget.class);
 
-	private Config config = null;
+	protected Config config = null;
 
 	private AtomicInteger cralw_total = new AtomicInteger(0);// 抓取的网页总数(正在抓取+已经抓取完成的网页数)
 	private AtomicInteger finished_url_count = new AtomicInteger(0);// 已经抓取完成的网页数
@@ -71,6 +69,16 @@ public class HostTarget {
 	public String getHost() {
 		return config.getUrlScheduler().getHost().getHost();
 	}
+	
+	/**
+	 * 获得实际抓取的spider的实例
+	 * @param url
+	 * url
+	 * @return {@link Worker}实例
+	 */
+	public Worker getSpiderWorker(UrlBean url){
+		return new Worker(url);// 抓取这个页面
+	}
 
 	public void start() {
 		UrlBean host = null;
@@ -99,7 +107,7 @@ public class HostTarget {
 				}
 			}
 			if (url != null) {
-				worker = new Worker(url);// 抓取这个页面
+				worker = getSpiderWorker(url);// 抓取这个页面
 				cralw_total.incrementAndGet();
 				THREAD_POLL.execute(worker);
 			} else { // 在一个host下已经抓取完成,现在切换到另外一个host下去抓取
@@ -153,7 +161,7 @@ public class HostTarget {
 	 */
 	class Worker implements Runnable {
 
-		private UrlBean url = null;
+		protected UrlBean url = null;
 
 		Worker(UrlBean url) {
 			this.url = url;
@@ -163,8 +171,6 @@ public class HostTarget {
 		public void run() {
 			HttpGet httpGet = null;
 			HttpResponse response = null;
-			String htmlContent = null;
-			AnalysisResult result = null;
 			try {
 				DefaultHttpClient client = new DefaultHttpClient();
 				HttpConnectionParams.setConnectionTimeout(client.getParams(),
@@ -173,15 +179,7 @@ public class HostTarget {
 						new Integer(config.getTimeOut() + "")); // 读取数据超时
 				httpGet = new HttpGet(url.getUrl().trim());
 				response = client.execute(httpHost, httpGet);
-				if (response.getStatusLine().getStatusCode() == 200
-						&& PageDownload.isTextHtml(response)) {
-					htmlContent = PageDownload.getContent(response);
-					Set<UrlBean> urls = HtmlParser.getUrls(htmlContent,
-							config.getUrlUnContains());
-					config.getUrlScheduler().addUrls(urls);
-					result = config.getAnalyzer().getResult(htmlContent);
-					config.getStorage().save(result);
-				}
+				handleResponse(response); // 处理响应
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -195,7 +193,26 @@ public class HostTarget {
 					httpGet.releaseConnection();
 				}
 			}
+		}
 
+		/**
+		 * 处理HttpResponse
+		 * 
+		 * @param response
+		 *            HttpResponse
+		 * @throws IOException
+		 */
+		void handleResponse(HttpResponse response) throws IOException {
+			String htmlContent = null;
+			AnalysisResult result = null;
+			if (response.getStatusLine().getStatusCode() == 200
+					&& PageDownload.isTextHtml(response)) {
+				htmlContent = PageDownload.getContent(response);
+				config.getUrlScheduler().collectUrls(htmlContent,
+						config.getUrlUnContains());// 收集页面中的url
+				result = config.getAnalyzer().getResult(htmlContent);
+				config.getStorage().save(result);
+			}
 		}
 	}
 

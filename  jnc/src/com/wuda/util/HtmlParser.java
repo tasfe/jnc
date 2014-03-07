@@ -40,13 +40,37 @@ public class HtmlParser {
 	 * keywords的正则表达式模式
 	 */
 	public final static Pattern KEYWORDS = Pattern
-			.compile("(?s)(?i)<meta\\sname=\"keywords\".*?content=\"(.+?)\"\\s?/>");
+			.compile("(?s)(?i)<meta\\sname=\"keywords\".*?content=\"(.+?)\".*?>");
 
 	/**
 	 * description的正则表达式模式
 	 */
 	public final static Pattern DESCRIPTION = Pattern
-			.compile("(?s)(?i)<meta\\sname=\"description\".*?content=\"(.+?)\"\\s?/>");
+			.compile("(?s)(?i)<meta\\sname=\"description\".*?content=\"(.+?)\".*?>");
+
+	/**
+	 * script的正则表达式模式
+	 */
+	public final static Pattern SCRIPT = Pattern
+			.compile("(?s)(?i)<script.+?</script>");
+
+	/**
+	 * html注释的正则表达式模式
+	 */
+	public final static Pattern HTML_NOTE = Pattern
+			.compile("(?s)(?i)<!--.*?-->");
+
+	/**
+	 * html标签的正则表达式模式
+	 */
+	public final static Pattern HTML_TAG = Pattern
+			.compile("(?s)(?i)<(/?|!?)[a-z]+.*?>");
+
+	/**
+	 * 一些特殊字符的正则表达式模式
+	 */
+	public final static Pattern SPECIAL_CHAR = Pattern
+			.compile("\\t|\\n|\\r|\\s|&nbsp;|&copy;");
 
 	/**
 	 * <p>
@@ -63,8 +87,8 @@ public class HtmlParser {
 
 	/**
 	 * <p>
-	 * 从给定的html内容中获得所有的<a>标签中的url,但是url中不能出现<i>uncontains</i>中包含的值,如果<i>
-	 * uncontains</i>中包含需要转义的字符,比如 ：问号?,则必须传人已经转义过的\\?,这个方法里面不会执行转义操作
+	 * 从给定的html内容中获得所有的<a>标签中的url,但是url中不能出现<i>uncontains</i>中包含的值,比如
+	 * 不想收集有"?"的url
 	 * </p>
 	 * 
 	 * @param htmlContent
@@ -73,28 +97,30 @@ public class HtmlParser {
 	 *            url中不能出现的内容
 	 * @return urls 或者null-如果没有url
 	 */
-	public static Set<UrlBean> getUrls(String htmlContent, Set<String> uncontains) {
+	public static Set<UrlBean> getUrls(String htmlContent,
+			Set<String> uncontains) {
 		if (StringUtil.isNullOrEmpty(htmlContent)) {
 			return null;
 		}
-		String uncontains_regex = getOrRegex(uncontains);
-		StringBuilder tag_a_regex = new StringBuilder();
-		tag_a_regex.append("(?i)<a.*?href=(\"|')");
-		if (StringUtil.isNullOrEmpty(uncontains_regex) == false) {
-			tag_a_regex.append("(((?!" + uncontains_regex + ").)+?)"); // 任何字符，除了xxx
-		} else {
-			tag_a_regex.append("(.+?)");
-		}
-		tag_a_regex.append("(\"|').*?>(.*?)</a>");
 		Set<UrlBean> urls = new HashSet<UrlBean>();
-		Pattern pattern = Pattern.compile(tag_a_regex.toString());
-		Matcher matcher = pattern.matcher(htmlContent);
+		Matcher matcher = TAG_A.matcher(htmlContent);
 		String url = null;
 		while (matcher.find()) {
 			url = matcher.group(2);
 			if (!StringUtil.isNullOrEmpty(url)) {
 				url = url.toLowerCase();
-				urls.add(UrlUtil.getUrlBean(url));
+				boolean contains = false;
+				if (uncontains != null && !uncontains.isEmpty()) {
+					for (String uc : uncontains) {
+						if (url.indexOf(uc.toLowerCase()) != -1) {
+							contains = true;
+							break;
+						}
+					}
+				}
+				if (!contains) {
+					urls.add(UrlUtil.getUrlBean(url));
+				}
 			}
 		}
 		return urls;
@@ -181,20 +207,22 @@ public class HtmlParser {
 	}
 
 	/**
-	 * <p>
-	 * 获得“或者”条件
-	 * </p>
+	 * 去除html标签,获取纯文本内容
+	 * 
+	 * @return 去除html标签后的文本内容
 	 */
-	private static String getOrRegex(Set<String> elements) {
-		if (elements == null || elements.isEmpty()) {
+	public static String getTextContent(String htmlContent) {
+		if (StringUtil.isNullOrEmpty(htmlContent)) {
 			return null;
 		}
-		StringBuilder sb = new StringBuilder();
-		for (String ele : elements) {
-			sb.append(ele);
-			sb.append("|"); // "或者"分隔符
-		}
-		return sb.substring(0, sb.length() - 1);
+		Matcher matcher = SCRIPT.matcher(htmlContent);
+		htmlContent = matcher.replaceAll("");
+		matcher = HTML_NOTE.matcher(htmlContent);
+		htmlContent = matcher.replaceAll("");
+		matcher = HTML_TAG.matcher(htmlContent);
+		htmlContent = matcher.replaceAll("");
+		matcher = SPECIAL_CHAR.matcher(htmlContent);
+		htmlContent = matcher.replaceAll("");
+		return htmlContent;
 	}
-
 }

@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import com.wuda.util.HtmlParser;
 import com.wuda.util.UrlBean;
 
 /**
@@ -83,6 +84,19 @@ public class UrlScheduler {
 				addNewHost(url);
 			}
 		}
+	}
+
+	/**
+	 * 从html内容中收集url
+	 * 
+	 * @param htmlContent
+	 *            html内容
+	 * @param uncontains
+	 *            url中不能包含的字符
+	 */
+	public void collectUrls(String htmlContent, Set<String> uncontains) {
+		Set<UrlBean> urls = HtmlParser.getUrls(htmlContent);
+		addUrls(urls);
 	}
 
 	/**
