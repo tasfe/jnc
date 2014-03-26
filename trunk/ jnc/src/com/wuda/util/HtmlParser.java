@@ -40,13 +40,13 @@ public class HtmlParser {
 	 * keywords的正则表达式模式
 	 */
 	public final static Pattern KEYWORDS = Pattern
-			.compile("(?s)(?i)<meta\\sname=\"keywords\".*?content=\"(.+?)\".*?>");
+			.compile("(?s)(?i)<meta\\sname=\"keywords\".*?content=\"(.*?)\".*?>");
 
 	/**
 	 * description的正则表达式模式
 	 */
 	public final static Pattern DESCRIPTION = Pattern
-			.compile("(?s)(?i)<meta\\sname=\"description\".*?content=\"(.+?)\".*?>");
+			.compile("(?s)(?i)<meta\\sname=\"description\".*?content=\"(.*?)\".*?>");
 
 	/**
 	 * script的正则表达式模式

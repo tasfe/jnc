@@ -54,7 +54,7 @@ public class UrlBean {
 	}
 
 	public void setPath(String path) {
-		if (path == null) {
+		if (path==null || path.isEmpty()) {
 			return;
 		}
 		this.path = path;
